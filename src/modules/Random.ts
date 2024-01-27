@@ -17,6 +17,21 @@ import {
 class Random extends CustomExt {
   private userCache = new Map<string, { time: number; problem: Problem }>()
 
+  constructor() {
+    super()
+
+    this.cron.add({
+      cronTime: '0 6 * * *',
+      onTick: () => {
+        const now = (Date.now() / 1000) | 0
+
+        this.userCache.forEach((v, k) => {
+          if (now - v.time >= 86400) this.userCache.delete(k)
+        })
+      },
+    })
+  }
+
   @random.command({
     name: 'setup',
     description: '랜덤 디펜스 가입 및 설정',
@@ -378,6 +393,8 @@ class Random extends CustomExt {
     })
 
     i.editReply({
+      content:
+        '⚠️ 매일 KST 06:00에 시작한 지 24시간이 지난 문제는 자동으로 종료됩니다.',
       embeds: [
         new CustomEmbed()
           .setTitle(`${problemId}: ${titleKo}`)
