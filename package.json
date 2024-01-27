@@ -31,7 +31,7 @@
     "@pikokr/command.ts": "5.6.2-dev.4",
     "@prisma/client": "^5.7.1",
     "axios": "^1.6.5",
-    "chalk": "^4.1.2",
+    "chalk": "^5.0.0",
     "cheerio": "1.0.0-rc.12",
     "discord.js": "^14.13.0",
     "git-rev-sync": "^3.0.2",
