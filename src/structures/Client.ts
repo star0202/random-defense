@@ -1,5 +1,8 @@
 import { config } from '../config'
 import { VERSION } from '../constants'
+import BaekjoonRequest from './BaekjoonRequest'
+import Database from './Database'
+import SolvedRequest from './SolvedRequest'
 import { CommandClient } from '@pikokr/command.ts'
 import { green } from 'chalk'
 import { ActivityType, Client } from 'discord.js'
@@ -11,6 +14,10 @@ import { Logger } from 'tslog'
 
 export default class CustomClient extends CommandClient {
   private jejudo!: Jejudo
+
+  readonly db: Database
+  readonly baekjoonRequest: BaekjoonRequest
+  readonly solvedRequest: SolvedRequest
 
   constructor(config: {
     logger: Logger<unknown>
@@ -30,6 +37,10 @@ export default class CustomClient extends CommandClient {
     this.discord.on('debug', (msg) => {
       this.logger.debug(msg)
     })
+
+    this.db = new Database(this.logger)
+    this.baekjoonRequest = new BaekjoonRequest(this.logger)
+    this.solvedRequest = new SolvedRequest(this.logger)
   }
 
   async setup() {

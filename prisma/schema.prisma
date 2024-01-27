@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @unique
+
+  handle String
+  query  String?
+
+  stats Stat[]
+}
+
+model Stat {
+  id Int @id @default(autoincrement())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  problem        Int
+  tier           Int
+  time           Int
+  title          String
+  submittedAfter Int
+  success        Boolean
+}
