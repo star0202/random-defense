@@ -377,7 +377,7 @@ class Random extends CustomExt {
       problem,
     })
 
-    await i.editReply({
+    i.editReply({
       embeds: [
         new CustomEmbed()
           .setTitle(`${problemId}: ${titleKo}`)
