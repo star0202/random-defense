@@ -13,15 +13,11 @@ export default class SolvedRequest extends Request {
   }
 
   async getUser(handle: string) {
-    const data = await this.get<User>(`/user/show?handle=${handle}`)
-
-    return data
+    return this.get<User>(`/user/show?handle=${handle}`)
   }
 
   async getProblem(problemId: number) {
-    const data = await this.get<Problem>(`/problem/show?problemId=${problemId}`)
-
-    return data
+    return this.get<Problem>(`/problem/show?problemId=${problemId}`)
   }
 
   async getRandomProblem(query: string) {
