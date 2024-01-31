@@ -108,6 +108,7 @@ class Random extends CustomExt {
       components: [new Confirm()],
     })
 
+    let end = false
     res
       .createMessageComponentCollector({
         filter: (j) => j.user.id === i.user.id,
@@ -151,6 +152,8 @@ class Random extends CustomExt {
             ],
             components: [],
           })
+
+          end = true
         } else {
           await c.update({
             embeds: [
@@ -161,9 +164,13 @@ class Random extends CustomExt {
             ],
             components: [],
           })
+
+          end = true
         }
       })
       .on('end', async () => {
+        if (end) return
+
         await i.editReply({
           embeds: [
             new CustomEmbed()
