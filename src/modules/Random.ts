@@ -1004,7 +1004,10 @@ class Random extends CustomExt {
               name: 'exit',
               value: '랜덤 디펜스를 탈퇴합니다.',
             }
-          ),
+          )
+          .setFooter({
+            text: 'Made by 스타샤(@starcea)',
+          }),
       ],
     })
   }
