@@ -42,7 +42,7 @@ class Random extends CustomExt {
 
   @random.command({
     name: 'setup',
-    description: '랜덤 디펜스 가입 및 설정',
+    description: '랜덤 디펜스 가입',
   })
   async setup(
     i: ChatInputCommandInteraction,
@@ -58,9 +58,17 @@ class Random extends CustomExt {
       name: 'query',
       description: '기본 문제 쿼리',
     })
-    query?: string
+    query?: string,
+    @option({
+      type: ApplicationCommandOptionType.Boolean,
+      name: 'show_tier',
+      description: '티어 표시 여부',
+    })
+    showTier?: boolean
   ) {
     await i.deferReply()
+
+    const _showTier = !!showTier
 
     const data = await this.db.randomUser.findUnique({
       where: {
@@ -76,6 +84,7 @@ class Random extends CustomExt {
         data: {
           handle,
           query,
+          showTier: _showTier,
         },
       })
 
@@ -130,6 +139,7 @@ class Random extends CustomExt {
               id: i.user.id,
               handle,
               query,
+              showTier: _showTier,
             },
           })
 
@@ -167,6 +177,65 @@ class Random extends CustomExt {
   }
 
   @random.command({
+    name: 'settings',
+    description: '랜덤 디펜스 설정',
+  })
+  async settings(
+    i: ChatInputCommandInteraction,
+    @option({
+      type: ApplicationCommandOptionType.String,
+      name: 'query',
+      description: '문제 쿼리',
+    })
+    query?: string,
+    @option({
+      type: ApplicationCommandOptionType.Boolean,
+      name: 'show_tier',
+      description: '티어 표시 여부',
+    })
+    showTier?: boolean
+  ) {
+    await i.deferReply()
+
+    const _showTier = !!showTier
+
+    const data = await this.db.randomUser.findUnique({
+      where: {
+        id: i.user.id,
+      },
+    })
+
+    if (!data) {
+      return i.editReply({
+        embeds: [
+          new CustomEmbed()
+            .setTitle('유저 정보 없음')
+            .setDescription('유저 정보가 없습니다.')
+            .setPredefinedColor('RED'),
+        ],
+      })
+    }
+
+    await this.db.randomUser.update({
+      where: {
+        id: i.user.id,
+      },
+      data: {
+        query,
+        showTier: _showTier,
+      },
+    })
+
+    i.editReply({
+      embeds: [
+        new CustomEmbed()
+          .setTitle('설정 완료')
+          .setDescription('설정이 완료되었습니다.'),
+      ],
+    })
+  }
+
+  @random.command({
     name: 'profile',
     description: '랜덤 디펜스 프로필',
   })
@@ -190,7 +259,7 @@ class Random extends CustomExt {
       })
     }
 
-    const { handle, query } = data
+    const { handle, query, showTier } = data
     const { profileImageUrl, tier } = await this.solvedRequest.getUser(handle)
 
     i.editReply({
@@ -206,6 +275,10 @@ class Random extends CustomExt {
             {
               name: '기본 쿼리',
               value: query ? `\`${query}\`` : '없음',
+            },
+            {
+              name: '티어 표시 여부',
+              value: showTier ? '표시' : '표시 안 함',
             }
           )
           .setTierColor(tier),
@@ -325,7 +398,7 @@ class Random extends CustomExt {
         Math.round(success.reduce((acc, cur) => acc + cur.tier, 0) / solved)
       )?.name ?? '없음'
     const avgTierTries = tierMapping.get(
-      stats.reduce((acc, cur) => acc + cur.tier, 0) / total
+      Math.round(stats.reduce((acc, cur) => acc + cur.tier, 0) / total)
     )!.name
 
     i.editReply({
@@ -411,7 +484,9 @@ class Random extends CustomExt {
       })
     }
 
-    const problem = await this.solvedRequest.getRandomProblem(_query)
+    const problem = await this.solvedRequest.getRandomProblem(
+      _query.replaceAll('$me', data.handle)
+    )
 
     if (!problem) {
       return i.editReply({
@@ -444,31 +519,32 @@ class Random extends CustomExt {
       problem,
     })
 
+    const embed = new CustomEmbed()
+      .setTitle(`**/<${problemId}>** ${titleKo}`)
+      .addFields(
+        {
+          name: '난이도',
+          value: data.showTier ? tierMapping.get(level)!.name : '*숨겨짐*',
+          inline: true,
+        },
+        {
+          name: '맞힌 사람',
+          value: `${acceptedUserCount}명`,
+          inline: true,
+        },
+        {
+          name: '평균 시도 횟수',
+          value: `${averageTries}회`,
+          inline: true,
+        }
+      )
+
+    if (data.showTier) embed.setTierColor(level)
+
     i.editReply({
       content:
         '⚠️ 매일 KST 06:00에 시작한 지 24시간이 지난 문제는 자동으로 종료됩니다.',
-      embeds: [
-        new CustomEmbed()
-          .setTitle(`**/<${problemId}>** ${titleKo}`)
-          .addFields(
-            {
-              name: '난이도',
-              value: tierMapping.get(level)!.name,
-              inline: true,
-            },
-            {
-              name: '맞힌 사람',
-              value: `${acceptedUserCount}명`,
-              inline: true,
-            },
-            {
-              name: '평균 시도 횟수',
-              value: `${averageTries}회`,
-              inline: true,
-            }
-          )
-          .setTierColor(level),
-      ],
+      embeds: [embed],
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
@@ -522,33 +598,34 @@ class Random extends CustomExt {
     const { problemId, titleKo, acceptedUserCount, level, averageTries } =
       problem
 
+    const embed = new CustomEmbed()
+      .setTitle(`**/<${problemId}>** ${titleKo}`)
+      .addFields(
+        {
+          name: '난이도',
+          value: data.showTier ? tierMapping.get(level)!.name : '*숨겨짐*',
+          inline: true,
+        },
+        {
+          name: '맞힌 사람',
+          value: `${acceptedUserCount}명`,
+          inline: true,
+        },
+        {
+          name: '평균 시도 횟수',
+          value: `${averageTries}회`,
+          inline: true,
+        },
+        {
+          name: '시작 시간',
+          value: `<t:${time}:R>`,
+        }
+      )
+
+    if (data.showTier) embed.setTierColor(level)
+
     i.editReply({
-      embeds: [
-        new CustomEmbed()
-          .setTitle(`**/<${problemId}>** ${titleKo}`)
-          .addFields(
-            {
-              name: '난이도',
-              value: tierMapping.get(level)!.name,
-              inline: true,
-            },
-            {
-              name: '맞힌 사람',
-              value: `${acceptedUserCount}명`,
-              inline: true,
-            },
-            {
-              name: '평균 시도 횟수',
-              value: `${averageTries}회`,
-              inline: true,
-            },
-            {
-              name: '시작 시간',
-              value: `<t:${time}:R>`,
-            }
-          )
-          .setTierColor(level),
-      ],
+      embeds: [embed],
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
@@ -638,6 +715,9 @@ class Random extends CustomExt {
     const embed = new CustomEmbed()
       .setTitle(`**/<${problemId}>** ${problem.titleKo}`)
       .setDescription(`${successEmoji(success)} ${success ? '성공' : '실패'}`)
+      .setFooter({
+        text: `난이도: ${tierMapping.get(level)!.name}`,
+      })
 
     if (success) {
       embed.setTierColor(level).addFields({

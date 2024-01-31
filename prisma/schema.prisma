@@ -15,6 +15,7 @@ model RandomUser {
 
   handle String
   query  String?
+  showTier Boolean
 
   stats RandomStat[]
 }
