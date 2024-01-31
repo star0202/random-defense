@@ -17,8 +17,4 @@ export default class CustomExt extends Extension {
   protected get solvedRequest() {
     return this.commandClient.solvedRequest
   }
-
-  protected get cron() {
-    return this.commandClient.cron
-  }
 }

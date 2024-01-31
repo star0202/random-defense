@@ -1,7 +1,6 @@
 import { config } from '../config'
 import { VERSION } from '../constants'
 import BaekjoonRequest from './BaekjoonRequest'
-import CronManager from './Cron'
 import Database from './Database'
 import SolvedRequest from './SolvedRequest'
 import { CommandClient } from '@pikokr/command.ts'
@@ -19,7 +18,6 @@ export default class CustomClient extends CommandClient {
   readonly db: Database
   readonly baekjoonRequest: BaekjoonRequest
   readonly solvedRequest: SolvedRequest
-  readonly cron: CronManager
 
   constructor(config: {
     logger: Logger<unknown>
@@ -43,7 +41,6 @@ export default class CustomClient extends CommandClient {
     this.db = new Database(this.logger)
     this.baekjoonRequest = new BaekjoonRequest(this.logger)
     this.solvedRequest = new SolvedRequest(this.logger)
-    this.cron = new CronManager(this.logger)
   }
 
   async setup() {

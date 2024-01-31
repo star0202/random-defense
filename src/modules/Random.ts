@@ -1,5 +1,6 @@
 import { tierMapping } from '../constants'
 import { random } from '../groups'
+import CronManager from '../structures/Cron'
 import CustomEmbed from '../structures/Embed'
 import CustomExt from '../structures/Extension'
 import Confirm from '../structures/components/Confirm'
@@ -16,6 +17,8 @@ import {
 
 class Random extends CustomExt {
   private userCache = new Map<string, { time: number; problem: Problem }>()
+
+  private readonly cron = new CronManager()
 
   constructor() {
     super()
@@ -221,7 +224,15 @@ class Random extends CustomExt {
     name: 'stats',
     description: '랜덤 디펜스 통계',
   })
-  async stats(i: ChatInputCommandInteraction) {
+  async stats(
+    i: ChatInputCommandInteraction,
+    @option({
+      type: ApplicationCommandOptionType.Boolean,
+      name: 'tier',
+      description: '티어별 통계',
+    })
+    tier?: boolean
+  ) {
     await i.deferReply()
 
     const data = await this.db.user.findUnique({
@@ -256,6 +267,42 @@ class Random extends CustomExt {
             .setDescription('통계가 없습니다.')
             .setPredefinedColor('RED'),
         ],
+      })
+    }
+
+    if (tier) {
+      const unrated = stats.filter((v) => v.tier === 0)
+      const bronze = stats.filter((v) => v.tier >= 1 && v.tier <= 5)
+      const silver = stats.filter((v) => v.tier >= 6 && v.tier <= 10)
+      const gold = stats.filter((v) => v.tier >= 11 && v.tier <= 15)
+      const platinum = stats.filter((v) => v.tier >= 16 && v.tier <= 20)
+      const diamond = stats.filter((v) => v.tier >= 21 && v.tier <= 25)
+      const ruby = stats.filter((v) => v.tier >= 26 && v.tier <= 30)
+
+      const embed = new CustomEmbed().setTitle('랜덤 디펜스 통계 (티어별)')
+
+      ;[unrated, bronze, silver, gold, platinum, diamond, ruby].forEach((v) => {
+        if (!v.length) return
+
+        const total = v.length
+        const solved = v.filter((v) => v.success).length
+
+        const avgTime =
+          v.reduce((acc, cur) => acc + cur.submittedAfter, 0) / solved
+
+        embed.addFields({
+          name: tierMapping.get(v[0].tier)!.name.split(' ')[0],
+          value: `${solved}/${total} of ${stats.length} (${(
+            (total / stats.length) *
+            100
+          ).toFixed(2)}%, solved: ${(solved / total) * 100}%, avg: ${
+            (avgTime / 60) | 0
+          }분 ${avgTime % 60 | 0}초)`,
+        })
+      })
+
+      return i.editReply({
+        embeds: [embed],
       })
     }
 
@@ -397,7 +444,7 @@ class Random extends CustomExt {
         '⚠️ 매일 KST 06:00에 시작한 지 24시간이 지난 문제는 자동으로 종료됩니다.',
       embeds: [
         new CustomEmbed()
-          .setTitle(`${problemId}: ${titleKo}`)
+          .setTitle(`**/<${problemId}>** ${titleKo}`)
           .addFields(
             {
               name: '난이도',
@@ -473,7 +520,7 @@ class Random extends CustomExt {
     i.editReply({
       embeds: [
         new CustomEmbed()
-          .setTitle(`${problemId}: ${titleKo}`)
+          .setTitle(`**/<${problemId}>** ${titleKo}`)
           .addFields(
             {
               name: '난이도',
@@ -584,7 +631,7 @@ class Random extends CustomExt {
     this.userCache.delete(i.user.id)
 
     const embed = new CustomEmbed()
-      .setTitle(`${problemId}: ${problem.titleKo}`)
+      .setTitle(`**/<${problemId}>** ${problem.titleKo}`)
       .setDescription(`${successEmoji(success)} ${success ? '성공' : '실패'}`)
 
     if (success) {
@@ -613,7 +660,7 @@ class Random extends CustomExt {
       select: {
         stats: {
           orderBy: {
-            time: 'asc',
+            time: 'desc',
           },
           take: 5,
         },
@@ -651,7 +698,7 @@ class Random extends CustomExt {
           .addFields(
             ...stats.map((v) => ({
               name:
-                `${successEmoji(v.success)} ${v.problem}: ${v.title} ` +
+                `${successEmoji(v.success)} **/<${v.problem}>** ${v.title} ` +
                 (v.success
                   ? `(${(v.submittedAfter / 60) | 0}분 ${
                       v.submittedAfter % 60 | 0
