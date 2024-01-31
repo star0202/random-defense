@@ -949,6 +949,65 @@ class Random extends CustomExt {
         }
       })
   }
+
+  @random.command({
+    name: 'help',
+    description: '랜덤 디펜스 도움말',
+  })
+  async help(i: ChatInputCommandInteraction) {
+    await i.deferReply()
+
+    i.editReply({
+      embeds: [
+        new CustomEmbed()
+          .setTitle('랜덤 디펜스 도움말')
+          .setThumbnail(
+            this.client.user!.displayAvatarURL({
+              size: 1024,
+            })
+          )
+          .setDescription('모든 명령어는 `/random`으로 시작합니다.')
+          .addFields(
+            {
+              name: 'setup',
+              value: '랜덤 디펜스에 가입합니다.',
+            },
+            {
+              name: 'settings',
+              value: '랜덤 디펜스 설정을 수정합니다.',
+            },
+            {
+              name: 'profile',
+              value: '랜덤 디펜스 프로필을 확인합니다.',
+            },
+            {
+              name: 'stats',
+              value: '랜덤 디펜스 통계를 확인합니다.',
+            },
+            {
+              name: 'start',
+              value: '랜덤 디펜스를 시작합니다.',
+            },
+            {
+              name: 'now',
+              value: '랜덤 디펜스 현황을 확인합니다.',
+            },
+            {
+              name: 'end',
+              value: '랜덤 디펜스를 종료합니다.',
+            },
+            {
+              name: 'history',
+              value: '랜덤 디펜스 기록을 확인합니다.',
+            },
+            {
+              name: 'exit',
+              value: '랜덤 디펜스를 탈퇴합니다.',
+            }
+          ),
+      ],
+    })
+  }
 }
 
 export const setup = async () => new Random()
