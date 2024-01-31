@@ -10,19 +10,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model RandomUser {
   id String @id @unique
 
   handle String
   query  String?
 
-  stats Stat[]
+  stats RandomStat[]
 }
 
-model Stat {
+model RandomStat {
   id Int @id @default(autoincrement())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   RandomUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
   problem        Int

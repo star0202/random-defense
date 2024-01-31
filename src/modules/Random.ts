@@ -62,14 +62,14 @@ class Random extends CustomExt {
   ) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
     })
 
     if (data && data.handle === handle) {
-      await this.db.user.update({
+      await this.db.randomUser.update({
         where: {
           id: i.user.id,
         },
@@ -125,7 +125,7 @@ class Random extends CustomExt {
             return
           }
 
-          await this.db.user.create({
+          await this.db.randomUser.create({
             data: {
               id: i.user.id,
               handle,
@@ -173,7 +173,7 @@ class Random extends CustomExt {
   async profile(i: ChatInputCommandInteraction) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
@@ -240,7 +240,7 @@ class Random extends CustomExt {
   ) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
@@ -381,7 +381,7 @@ class Random extends CustomExt {
   ) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
@@ -487,7 +487,7 @@ class Random extends CustomExt {
   async now(i: ChatInputCommandInteraction) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
@@ -567,7 +567,7 @@ class Random extends CustomExt {
   async end(i: ChatInputCommandInteraction) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
@@ -613,7 +613,7 @@ class Random extends CustomExt {
     const minutes = (submittedAfter / 60) | 0
     const seconds = submittedAfter % 60
 
-    await this.db.user.update({
+    await this.db.randomUser.update({
       where: {
         id: i.user.id,
       },
@@ -658,7 +658,7 @@ class Random extends CustomExt {
   async history(i: ChatInputCommandInteraction) {
     await i.deferReply()
 
-    const data = await this.db.user.findUnique({
+    const data = await this.db.randomUser.findUnique({
       where: {
         id: i.user.id,
       },
