@@ -528,6 +528,9 @@ class Random extends CustomExt {
 
     const embed = new CustomEmbed()
       .setTitle(`**/<${problemId}>** ${titleKo}`)
+      .setDescription(
+        '문제를 풀거나 포기한 뒤 `/random end`로 종료할 수 있습니다.'
+      )
       .addFields(
         {
           name: '난이도',
@@ -594,7 +597,9 @@ class Random extends CustomExt {
         embeds: [
           new CustomEmbed()
             .setTitle('진행 중인 문제 없음')
-            .setDescription('진행 중인 문제가 없습니다.')
+            .setDescription(
+              '진행 중인 문제가 없습니다.\n`/random start`로 시작할 수 있습니다.'
+            )
             .setPredefinedColor('RED'),
         ],
       })
@@ -607,6 +612,9 @@ class Random extends CustomExt {
 
     const embed = new CustomEmbed()
       .setTitle(`**/<${problemId}>** ${titleKo}`)
+      .setDescription(
+        '문제를 풀거나 포기한 뒤 `/random end`로 종료할 수 있습니다.'
+      )
       .addFields(
         {
           name: '난이도',
@@ -675,7 +683,9 @@ class Random extends CustomExt {
         embeds: [
           new CustomEmbed()
             .setTitle('진행 중인 문제 없음')
-            .setDescription('진행 중인 문제가 없습니다.')
+            .setDescription(
+              '진행 중인 문제가 없습니다.\n`/random start`로 시작할 수 있습니다.'
+            )
             .setPredefinedColor('RED'),
         ],
       })
@@ -867,6 +877,71 @@ class Random extends CustomExt {
               new CustomEmbed()
                 .setTitle('탈퇴 취소')
                 .setDescription('탈퇴가 취소되었습니다.')
+                .setPredefinedColor('RED'),
+            ],
+            components: [],
+          })
+        }
+      })
+  }
+
+  @random.command({
+    name: 'kill',
+    description: '[OWNER] 랜덤 디펜스 강제 종료',
+  })
+  async kill(i: ChatInputCommandInteraction) {
+    await i.deferReply({
+      ephemeral: true,
+    })
+
+    if (!(await this.commandClient.isOwner(i.user))) {
+      return i.editReply({
+        embeds: [
+          new CustomEmbed()
+            .setTitle('권한 없음')
+            .setDescription('권한이 없습니다.')
+            .setPredefinedColor('RED'),
+        ],
+      })
+    }
+
+    const problems: string[] = []
+
+    this.userCache.forEach((v, k) =>
+      problems.push(`<@${k}>: **/<${v.problem.problemId}>**: <t:${v.time}:R>`)
+    )
+
+    const res = await i.editReply({
+      embeds: [
+        new CustomEmbed()
+          .setTitle('문제 리스트')
+          .setDescription(problems.join('\n')),
+      ],
+      components: [new Confirm()],
+    })
+
+    res
+      .createMessageComponentCollector({
+        filter: (j) => j.user.id === i.user.id,
+      })
+      .on('collect', async (c) => {
+        if (c.customId === 'confirm') {
+          await c.update({
+            embeds: [
+              new CustomEmbed()
+                .setTitle('종료 완료')
+                .setDescription('종료가 완료되었습니다.'),
+            ],
+            components: [],
+          })
+
+          this.userCache.clear()
+        } else {
+          await c.update({
+            embeds: [
+              new CustomEmbed()
+                .setTitle('종료 취소')
+                .setDescription('종료가 취소되었습니다.')
                 .setPredefinedColor('RED'),
             ],
             components: [],
