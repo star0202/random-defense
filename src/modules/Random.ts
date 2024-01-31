@@ -805,6 +805,75 @@ class Random extends CustomExt {
       ],
     })
   }
+
+  @random.command({
+    name: 'exit',
+    description: '랜덤 디펜스 탈퇴',
+  })
+  async exit(i: ChatInputCommandInteraction) {
+    await i.deferReply()
+
+    const data = await this.db.randomUser.findUnique({
+      where: {
+        id: i.user.id,
+      },
+    })
+
+    if (!data) {
+      return i.editReply({
+        embeds: [
+          new CustomEmbed()
+            .setTitle('유저 정보 없음')
+            .setDescription('유저 정보가 없습니다.')
+            .setPredefinedColor('RED'),
+        ],
+      })
+    }
+
+    const res = await i.editReply({
+      embeds: [
+        new CustomEmbed()
+          .setTitle('탈퇴 확인')
+          .setDescription(
+            '정말 탈퇴하시겠습니까?\n탈퇴하시면 모든 정보가 삭제됩니다.'
+          ),
+      ],
+      components: [new Confirm()],
+    })
+
+    res
+      .createMessageComponentCollector({
+        filter: (j) => j.user.id === i.user.id,
+      })
+      .on('collect', async (c) => {
+        if (c.customId === 'confirm') {
+          await this.db.randomUser.delete({
+            where: {
+              id: i.user.id,
+            },
+          })
+
+          await c.update({
+            embeds: [
+              new CustomEmbed()
+                .setTitle('탈퇴 완료')
+                .setDescription('탈퇴가 완료되었습니다.'),
+            ],
+            components: [],
+          })
+        } else {
+          await c.update({
+            embeds: [
+              new CustomEmbed()
+                .setTitle('탈퇴 취소')
+                .setDescription('탈퇴가 취소되었습니다.')
+                .setPredefinedColor('RED'),
+            ],
+            components: [],
+          })
+        }
+      })
+  }
 }
 
 export const setup = async () => new Random()
