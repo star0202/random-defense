@@ -1,5 +1,4 @@
 import { tierMapping } from '../constants'
-import { random } from '../groups'
 import CronManager from '../structures/Cron'
 import CustomEmbed from '../structures/Embed'
 import CustomExt from '../structures/Extension'
@@ -7,6 +6,7 @@ import Confirm from '../structures/components/Confirm'
 import type { Problem } from '../types'
 import { successEmoji } from '../utils/emoji'
 import { option } from '@pikokr/command.ts'
+import { SubCommandGroup } from '@pikokr/command.ts'
 import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
@@ -14,6 +14,11 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
 } from 'discord.js'
+
+const random = new SubCommandGroup({
+  name: 'random',
+  description: '랜덤 디펜스',
+})
 
 class Random extends CustomExt {
   private userCache = new Map<string, { time: number; problem: Problem }>()
